@@ -3,7 +3,7 @@
     <div class="content center">
       <img class="logo" :src="require('../assets/logoL.png')" alt="Logo"/>
 
-      <form class="createaccount-form" @submit.prevent="createAccount">
+      <form class="createaccount-form" @submit.prevent= createAccount>
         <label class="lb" for="name-input">Nome</label>  
         <div class="input-control"> 
           <input v-model="name" type="text" id="name-input" required name="name" class="input" placeholder="Digite seu nome">
@@ -40,25 +40,56 @@
 
 <script>
 
-// import * as firebase from 'firebase'
+import * as firebase from 'firebase'
+import httpStatuses from '../utils/httpStatuses.js'
+import Account from '../models/Account.js'
+
 
 export default {
   name: 'create_account',
   data: () => ({
+    name:'',
     email:'',
     password:'',
-    user:true
+    Account: [],
+    httpStatuses
   }),
   methods: {
-//     submitLogin () {
-//       firebase.auth().signInWithEmailAndPassword(this.email, this.password)
-//         .then(() => {
-//           alert('Autenticado com sucesso!')
-//           this.$router.push({ path: '/login' })
-//         }).catch(() => {
-//           alert('Falha na autenticação!')
-//         })
-//     },
+
+    createAccount () {
+      const database = firebase.firestore()
+      alert('teste')
+      if(firebase.auth().currentUser){
+        firebase.signOut()
+      }else {
+        if (!this.name || !this.email || !this.password) {
+          return alert(`Erro ao criar conta!`)
+        }
+        let email = this.email
+        firebase.auth().createUserWithEmailAndPassword(this.email, this.password)          
+          .then(() => {
+            let newAccount = new Account({ name, email })
+            let docRef = database.collection('users').doc(newAccount.id)
+            alert('teste3')
+            docRef.set({
+              id: newAccount.id,
+              agency: newAccount.agency,
+              numberAccount: newAccount.numberAccount,
+              cpf: newAccount.cpf,
+              name: newAccount.name,
+              email: newAccount.email,
+              balance: newAccount.balance,
+              createdAt: newAccount.createdAt,
+              userId: firebase.auth().currentUser.uid
+            })
+            alert('Conta criada com sucesso !')
+            this.$router.push({ path: '/' })
+          }).catch((error) => {
+            alert('Erro ao criar conta. \n\n' + error)
+            this.$router.push({ path: '/create' })
+          })
+      }
+    },
  }
 }
 </script>

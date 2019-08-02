@@ -14,14 +14,19 @@ export default new Router({
   base: process.env.BASE_URL,
   routes: [
     {
+      path: '*',
+      name: 'Login',
+      component: Login
+    },
+    {
+      path: '/',
+      name: 'Login',
+      component: Login
+    },
+    {
       path: '/home',
       name: 'home',
       component: Home
-    },
-    {
-      path: '/login',
-      name: 'Login',
-      component: Login
     },
     {
       path: '/create',

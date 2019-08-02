@@ -15,7 +15,7 @@
         
         <div class="actions">
           <p v-if="!user">Usuário e/ou senha incorretos</p>
-          <button type="submit" class="center">
+          <button type="submit" id="login-button" class="center">
             Entrar
           </button>
       </div>
@@ -33,25 +33,39 @@
 
 <script>
 
-// import * as firebase from 'firebase'
+ import * as firebase from 'firebase'
+ 
 
 export default {
-  name: 'login',
   data: () => ({
-    email:'',
-    password:'',
+    email: '',
+    password: '',
     user:true
   }),
   methods: {
-//     submitLogin () {
-//       firebase.auth().signInWithEmailAndPassword(this.email, this.password)
-//         .then(() => {
-//           alert('Autenticado com sucesso!')
-//           this.$router.push({ path: '/login' })
-//         }).catch(() => {
-//           alert('Falha na autenticação!')
-//         })
-//     },
+    submitLogin () {
+    if(firebase.auth().currentUser) {
+        firebase.auth().signOut()
+        this.$router.push({ path: '/' })
+      }else {
+        firebase.auth().signInWithEmailAndPassword(this.email, this.password)
+          .then(() => {
+            alert('Autenticado com sucesso!')
+            this.$router.push({ path: '/home' })
+          })
+          .catch(function (error) {
+            this.user = false
+            var errorCode = error.code
+            var errorMessage = error.message
+            // [START_EXCLUDE]
+            if (errorCode === 'auth/wrong-password') {
+              alert('Wrong password.')
+            } else {
+              alert(errorMessage)
+            }
+          })
+      }
+    },
  }
 }
 </script>
