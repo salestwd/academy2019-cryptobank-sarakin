@@ -11,6 +11,7 @@
     "core-js": "^2.6.5",
     "firebase": "^6.3.4",
     "uuid": "^3.3.2",
+    "v-money": "^0.8.1",
     "vue": "^2.6.10",
     "vue-dropdowns": "^1.0.6",
     "vue-router": "^3.0.3"

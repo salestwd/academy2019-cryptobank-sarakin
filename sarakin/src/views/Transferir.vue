@@ -6,7 +6,7 @@
       <div class="main">
           <div class="header">   
             <label class="dep" for="efetua">
-            <img class="bac" :src="require('../assets/back.png')" alt="Logo"/> Transferir</label>              
+            <img class="bac" :src="require('../assets/back.png')" alt="Logo" @click="homePath"/> Transferir</label>              
           </div>
 
          <div class="main-2">
@@ -14,20 +14,17 @@
             <label class="inf" for="Informe">Informe a quantia desejada</label>
             <div class="val">
                 <label for="$KA">
-                    $KA <input v-model.number="number" maxlength="6" type="value" id="value-input" 
+                    $KA <input v-model.lazy="number" type="value" id="value-input" 
                 required name="value" class="input" inputmode="decimal"> 
                 </label>
             </div>
             <label class="inf2" for="Informe">Digite um valor entre $KA 10,00 e $KA 15.00,00</label>
             <div class="main-3">
                 <label class="inf" for="sendTo">Para quem você deseja enviar?</label>
-                <dropdown class="drop" :options="arrayOfObjects" 
-                    :selected="object" 
-                    v-on:updateOption="methodToRunOnSelect" 
-                    :placeholder="'Select an Item'">
-                </dropdown>
+                  <input v-model="email" type="email" id="email-input" 
+                  required name="email" class="input-email" inputmode="email" placeholder="Insira um email"> 
                 <div class="actions-home">
-                    <button type="submit" id="create-account-button" class="btn">
+                    <button type="submit" id="create-account-button" class="btn" @click="transfer">
                     Transferir
                     </button>
                 </div>
@@ -42,30 +39,125 @@
 
 <script>
 // @ is an alias to /src
-import dropdown from 'vue-dropdowns';
+import firebase from 'firebase'
+import httpStatuses from '../utils/httpStatuses'
 
 export default {
   name: 'home',
     data() {
         return {
-        arrayOfObjects: [],
-        object: {
-            name: 'Object Name',
+          httpStatuses,
+          email:'',
+          number:'',
+          emails: [],
+          flag: false
         }
-        }
-    },
-
-    components: {
-        'dropdown': dropdown,
     },
 
     methods: {
-        methodToRunOnSelect(payload) {
-        this.object = payload;
+
+      transfer () {
+          const database = firebase.firestore()
+          const id = firebase.auth().currentUser.uid
+
+          database.collection('users').get()
+          .then(snapshot => {
+            snapshot.forEach(doc => {
+              if(doc.data().email){
+                this.emails.push(doc.data().email)
+              }
+            })
+          })
+
+          database.collection('users')
+          .where('userId', '==', id).get()
+          .then(snapshot => {
+            snapshot.forEach(doc => {
+              const { balance } = doc.data()
+              if(balance <= 0 || this.number > balance) {
+                alert('Saldo insuficiente para depósito!')
+                this.$router.push({ path: '/home' })
+              } else {
+                  if(this.number >= 10 && this.number <= 15000){
+                    //Buscando conta destino
+                    
+                    this.emails.forEach(element => {
+                      if(this.email == element) {
+                        this.flag = true
+                      }
+                    })
+
+                    if(this.flag) {
+                      database.collection('users')
+                      .where('email', '==', this.email).get()
+                      .then(snapshot => {
+                        snapshot.forEach(doc => {
+                            this.flag = true
+                            const increaseTransfer = firebase.firestore.FieldValue.increment(+this.number)
+                            const docIdD = doc.id
+                            const docD = database.collection('users').doc(docIdD)
+                            docD.update({balance: increaseTransfer})
+                        })
+                      })
+                      const decreaseBy = firebase.firestore.FieldValue.increment(-this.number)
+                      const docId = doc.id
+                      const docC = database.collection('users').doc(docId)
+                      docC.update({balance: decreaseBy})
+                      alert('Transferência realizada com Sucesso!')
+                      this.$router.push({ path: '/home' })
+                    } else {
+                      alert(`Email não encontrado:  ${this.email}`)
+                      this.$router.push({ path: '/home' })
+                    }
+
+                  }else {
+                    alert(`O valor do pagamento deve estar entre $KA 10,00 and $KA 15.000,00`)
+                    this.$router.push({ path: '/home' })
+                  }
+              }
+            })
+          })
+        },
+      methodToRunOnSelect() {
+        this.arrayOfObjects = this.getAllEmail();
+      },
+
+      homePath () {
+        this.$router.push({ path: '/home' })
+      },
+
+      getAllEmail () {
+        const database = firebase.firestore()
+            const shouldReturn = email => {
+              return email != firebase.auth().currentUser.email
+            }
+
+            const filterSnapshot = snapshot => {
+              return snapshot.filter(doc => {
+                const { email } = doc.data()
+                return shouldReturn(email)
+              })
+            }
+
+            return new Promise((resolve, reject) => {
+              if (firebase.auth().currentUser) {
+                reject(new Error('FirebaseAuthError'))
+              }
+
+              database
+                .collection('users')
+                .get()
+                .then(snapshot => {
+                  resolve(filterSnapshot(snapshot))
+                })
+                .catch(err => {
+                  reject(err)
+                })
+            })
+          },
         }
-    }
-  
-}
+        
+      }
 </script>
 
 <style scoped>
@@ -196,68 +288,8 @@ export default {
     margin-left: 0px;
     width: 8.81px;
     left: 0px;
-}
-.dropdown {
-  color: #636b6f;
-  min-width: 160px;
-  padding: 10px;
-  text-transform: none;
-  font-weight: 300;
-  margin-bottom: 7px;
-  border: 0;
-  background-image: linear-gradient(#009688, #009688), linear-gradient(#D2D2D2, #D2D2D2);
-  background-size: 0 2px, 100% 1px;
-  background-repeat: no-repeat;
-  background-position: center bottom, center calc(100% - 1px);
-  background-color: transparent;
-  transition: background 0s ease-out;
-  float: none;
-  box-shadow: none;
-  border-radius: 0;
-}
-/* .dropdown-toggle:hover {
-  background: #e1e1e1;
-  cursor: pointer;
+    cursor: pointer;
 }
 
-.dropdown-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  z-index: 1000;
-  float: left;
-  min-width: 160px;
-  padding: 5px 0;
-  margin: 2px 0 0;
-  list-style: none;
-  font-size: 14px;
-  text-align: left;
-  background-color: #fff;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
-  background-clip: padding-box;
-}
 
-.dropdown-menu > li > a {
-  padding: 10px 30px;
-  display: block;
-  clear: both;
-  font-weight: normal;
-  line-height: 1.6;
-  color: #333333;
-  white-space: nowrap;
-  text-decoration: none;
-}
-.dropdown-menu > li > a:hover {
-  background: #efefef;
-  color: #409FCB;
-}
-
-.dropdown-menu > li {
-  overflow: hidden;
-  width: 100%;
-  position: relative;
-  margin: 0;
-} */
 </style>

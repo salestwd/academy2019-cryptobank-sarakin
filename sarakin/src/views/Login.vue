@@ -60,8 +60,10 @@ export default {
             // [START_EXCLUDE]
             if (errorCode === 'auth/wrong-password') {
               alert('Wrong password.')
+              this.$router.push({ path: '/' })
             } else {
               alert(errorMessage)
+              this.$router.push({ path: '/' })
             }
           })
       }

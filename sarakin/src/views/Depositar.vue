@@ -6,21 +6,23 @@
       <div class="main">
           <div class="header">   
             <label class="dep" for="deposita">
-            <img class="bac" :src="require('../assets/back.png')" alt="Logo"/> Depositar</label>              
+            <img class="bac" :src="require('../assets/back.png')" alt="Logo" @click="homePath"/> Depositar</label>              
           </div>
 
          <div class="main-2">
 
             <label class="inf" for="Informe">Informe a quantia desejada</label>
             <div class="val">
-                <label for="$KA">
-                    $KA <input v-model.number="number" maxlength="6" type="value" id="value-input" 
+              <label classe="h" for="">
+                $KA <input v-model.number="number" type="value" id="value-input" 
                 required name="value" class="input" inputmode="decimal"> 
-                </label>
+                
+              </label>
+
             </div>
             <label class="inf2" for="Informe">Digite um valor entre $KA 10,00 e $KA 15.00,00</label>
             <div class="actions-home">
-                <button type="submit" id="create-account-button" class="btn">
+                <button type="submit" id="create-account-button" class="btn" @click="deposit">
                  Depositar
                 </button>
             </div>
@@ -34,9 +36,61 @@
 
 <script>
 // @ is an alias to /src
+import firebase from 'firebase'
+import httpStatuses from '../utils/httpStatuses'
+
 
 export default {
-  name: 'home'
+  name: 'home',
+  data () {
+    return {
+      httpStatuses,
+      number:''
+    }
+  },
+
+  methods: {
+    homePath () {
+      this.$router.push({ path: '/home' })
+    },
+
+    deposit () {
+
+     if (firebase.auth().currentUser) {
+      const database = firebase.firestore()
+
+      if(this.number >= 10 && this.number <= 15000) {
+        const usrId = firebase.auth().currentUser.uid
+        const increaseBy = firebase.firestore.FieldValue.increment(this.number)
+        database
+        .collection('users')
+        .where('userId', '==', usrId)
+        .get()
+        .then(snapshot => {
+          snapshot.forEach(doc => {
+            const docId = doc.id
+            const docC = database.collection('users').doc(docId)
+            docC.update({balance: increaseBy})
+            alert(`Depósito realizado com Sucesso!`)
+            this.$router.push({ path: '/home' })
+          })
+        })
+        .catch(err => {
+          alert(`Erro ao buscar documentos: ${err} `)
+          this.$router.push({ path: '/home' })
+        })
+      }else{
+          alert(`O valor do depósito deve estar entre $KA 10,00 and $KA 15.000,00`)
+          this.$router.push({ path: '/home' })
+      }
+     }else {
+        alert(`${httpStatuses.clientError.notFound} Nenhum usuário Logado!`)
+        this.$router.push({ path: '/home' })
+      }
+
+    }
+
+  }
 }
 </script>
 
@@ -106,7 +160,7 @@ export default {
 }
 .input {
     height: 35px;
-    width: 153px;
+    width: 200px;
     border-radius: 5px;
     border: none;
     background: #FFF;
@@ -152,7 +206,8 @@ export default {
 }
 .bac {
     margin-left: 0px;
-    width: 8.81px;
+    width: 10px;
     left: 0px;
+    cursor: pointer;
 }
 </style>

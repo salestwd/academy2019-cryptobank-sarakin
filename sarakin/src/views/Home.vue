@@ -5,25 +5,29 @@
       
       <div class="main">
         <h5>Saldo Disponível</h5>
-        <h2 class="h">$KA </h2>
+        <h2 class="h">$KA {{balance}}</h2>
       </div>
       
       <form class="home-form" action="">
         <div class="actions-home">
           
-          <button type="submit" id="create-account-button" class="center">
-          <img class="icon" :src="require('../assets/piggy-bank.png')" alt="Logo"/> 
+          <button type="submit" id="deposit-button" class="center btn-icon btn-icon__deposit" @click="depositPath">
             Depositar
           </button>
         </div>
         <div class="actions-home">
-          <button type="submit" id="create-account-button" class="center">
+          <button type="submit" id="payment-button" class="center btn-icon btn-icon__payment" @click="payPath">
             Pagar
           </button>
         </div>
         <div class="actions-home">
-          <button type="submit" id="create-account-button" class="center">
+          <button type="submit" id="transfer-button" class="center btn-icon btn-icon__transfer" @click="transferPath">
             Transferir
+          </button>
+        </div>
+        <div class="actions-home">
+          <button type="submit" id="sair-button" class="center btn-icon btn-icon__sair" @click="signOut">
+            Sair
           </button>
         </div>
       </form>
@@ -34,9 +38,71 @@
 
 <script>
 // @ is an alias to /src
+import firebase from 'firebase'
+import httpStatuses from '../utils/httpStatuses'
 
 export default {
-  name: 'home'
+  name: 'home', 
+  data () {
+    return {
+      balance:'',
+      httpStatuses
+    }
+  },
+
+  methods: {
+    show () {
+      if(firebase.auth().currentUser) {
+        const userId = firebase.auth().currentUser.uid
+        const database = firebase.firestore()
+        database.collection('users')
+        .where('userId', '==', userId).get()
+        .then(snapshot => {
+          snapshot.forEach(doc => {
+            this.balance = doc.data().balance
+            return this.balance
+          })
+        })
+        .catch(err => {
+          alert(`${httpStatuses.clientError.badRequest} Falha ao buscar saldo! ${err}`)
+        })
+      }
+    },
+
+    depositPath () {
+      this.$router.push({ path: '/deposit' })
+    },
+
+    payPath () {
+      this.$router.push({ path: '/pay' })
+    },
+
+    transferPath () {
+      this.$router.push({ path: '/transfer' })
+    },
+
+    signOut () {
+      if(firebase.auth().currentUser) {
+        firebase.auth().signOut()
+        alert('Deslogado com sucesso!')
+        this.$router.push({ path: '/' })
+      }
+    }
+
+  },
+
+  created () {
+    this.show()
+  },
+
+  mounted () {
+    this.show()
+  },
+
+  destroyed () {
+    this.show()
+  }
+
 }
 </script>
 
@@ -115,6 +181,27 @@ export default {
   width: 38px;
   vertical-align: middle;
   margin-bottom: 0.75em;
+}
+.btn-icon {
+  padding: 10px;
+  background-repeat: no-repeat;
+  background-position: 10px 50%;
+}
+
+.btn-icon__deposit {
+  background-image: url('../assets/piggy-bank.png');
+}
+
+.btn-icon__payment {
+  background-image: url('../assets/pay.png');
+}
+
+.btn-icon__transfer {
+  background-image: url('../assets/surface1.png');
+}
+
+.btn-icon__sair {
+  text-align: center;
 }
 
 

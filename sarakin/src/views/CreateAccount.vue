@@ -3,8 +3,8 @@
     <div class="content center">
       <img class="logo" :src="require('../assets/logoL.png')" alt="Logo"/>
 
-      <form class="createaccount-form" @submit.prevent= createAccount>
-        <label class="lb" for="name-input">Nome</label>  
+      <form class="createaccount-form"  @submit.prevent="createAccount">
+        <label class="lb" for="name-input">Nome</label>
         <div class="input-control"> 
           <input v-model="name" type="text" id="name-input" required name="name" class="input" placeholder="Digite seu nome">
         </div>
@@ -58,19 +58,20 @@ export default {
 
     createAccount () {
       const database = firebase.firestore()
-      alert('teste')
+
       if(firebase.auth().currentUser){
         firebase.signOut()
+        this.$router.push({ path: '/' })
       }else {
         if (!this.name || !this.email || !this.password) {
           return alert(`Erro ao criar conta!`)
         }
         let email = this.email
+        let name = this.name
         firebase.auth().createUserWithEmailAndPassword(this.email, this.password)          
           .then(() => {
             let newAccount = new Account({ name, email })
             let docRef = database.collection('users').doc(newAccount.id)
-            alert('teste3')
             docRef.set({
               id: newAccount.id,
               agency: newAccount.agency,
@@ -89,7 +90,7 @@ export default {
             this.$router.push({ path: '/create' })
           })
       }
-    },
+    }
  }
 }
 </script>
