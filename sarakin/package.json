@@ -47,5 +47,10 @@
   "browserslist": [
     "> 1%",
     "last 2 versions"
-  ]
+  ],
+    "hosting": {
+      "public": "./dist"
+    }
 }
+
+
