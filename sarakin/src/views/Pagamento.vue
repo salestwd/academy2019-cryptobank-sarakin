@@ -67,9 +67,15 @@ export default {
           snapshot.forEach(doc => {
             const docId = doc.id
             const docC = database.collection('users').doc(docId)
-            docC.update({balance: increaseBy})
-            alert(`Pagamento realizado com Sucesso!`)
-            this.$router.push({ path: '/home' })
+            const balance = database.collection('users').doc(docId).balance
+            if (this.number >= balance) {
+              docC.update({balance: increaseBy})
+              alert(`Pagamento realizado com Sucesso!`)
+              this.$router.push({ path: '/home' })
+            } else {
+              alert(`Saldo insuficiente para pagamento!`)
+              this.$router.push({ path: '/home' })
+            }
           })
         })
         .catch(err => {
