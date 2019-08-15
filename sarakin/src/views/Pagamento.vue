@@ -59,23 +59,30 @@ export default {
       if(this.number >= 10 && this.number <= 15000) {
         const usrId = firebase.auth().currentUser.uid
         const increaseBy = firebase.firestore.FieldValue.increment(-this.number)
-        database
-        .collection('users')
-        .where('userId', '==', usrId)
-        .get()
-        .then(snapshot => {
-          snapshot.forEach(doc => {
-            const docId = doc.id
-            const docC = database.collection('users').doc(docId)
-            docC.update({balance: increaseBy})
-            alert(`Pagamento realizado com Sucesso!`)
+        const balance = firebase.auth().currentUser.balance
+
+        if(this.number >= balance) {
+          database
+          .collection('users')
+          .where('userId', '==', usrId)
+          .get()
+          .then(snapshot => {
+            snapshot.forEach(doc => {
+              const docId = doc.id
+              const docC = database.collection('users').doc(docId)
+              docC.update({balance: increaseBy})
+              alert(`Pagamento realizado com Sucesso!`)
+              this.$router.push({ path: '/home' })
+            })
+          })
+          .catch(err => {
+            alert(`Erro ao buscar documentos: ${err} `)
             this.$router.push({ path: '/home' })
           })
-        })
-        .catch(err => {
-          alert(`Erro ao buscar documentos: ${err} `)
+        } else {
+          alert(`Saldo insuficiente! ${balance}`)
           this.$router.push({ path: '/home' })
-        })
+        }
       }else{
           alert(`O valor do pagamento deve estar entre $KA 10,00 and $KA 15.000,00`)
           this.$router.push({ path: '/home' })
