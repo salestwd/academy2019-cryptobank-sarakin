@@ -61,7 +61,7 @@ export default {
         const increaseBy = firebase.firestore.FieldValue.increment(-this.number)
         const balance = firebase.auth().currentUser.balance
 
-        if(this.number >= balance) {
+        if(this.number <= balance) {
           database
           .collection('users')
           .where('userId', '==', usrId)

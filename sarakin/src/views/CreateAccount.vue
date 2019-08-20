@@ -57,6 +57,7 @@ export default {
   methods: {
 
     createAccount () {
+
       const database = firebase.firestore()
 
       if(firebase.auth().currentUser){
@@ -64,7 +65,7 @@ export default {
         this.$router.push({ path: '/' })
       }else {
         if (!this.name || !this.email || !this.password) {
-          return alert(`Erro ao criar conta!`)
+          return alert(`Erro ao criar conta, faltando informações!`)
         }
         let email = this.email
         let name = this.name

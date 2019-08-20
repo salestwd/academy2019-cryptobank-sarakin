@@ -33,8 +33,7 @@
 
 <script>
 
- import * as firebase from 'firebase'
- 
+import * as firebase from 'firebase' 
 
 export default {
   data: () => ({
@@ -44,29 +43,25 @@ export default {
   }),
   methods: {
     submitLogin () {
-    if(firebase.auth().currentUser) {
-        firebase.auth().signOut()
-        this.$router.push({ path: '/' })
-      }else {
-        firebase.auth().signInWithEmailAndPassword(this.email, this.password)
-          .then(() => {
-            alert('Autenticado com sucesso!')
-            this.$router.push({ path: '/home' })
-          })
-          .catch(function (error) {
-            this.user = false
-            var errorCode = error.code
-            var errorMessage = error.message
-            // [START_EXCLUDE]
-            if (errorCode === 'auth/wrong-password') {
-              alert('Wrong password.')
-              this.$router.push({ path: '/' })
-            } else {
-              alert(errorMessage)
-              this.$router.push({ path: '/' })
-            }
-          })
-      }
+      firebase
+      .auth()
+      .signInWithEmailAndPassword(this.email, this.password)
+      .then(() => {
+        alert('Autenticado com sucesso!')
+        this.$router.push({ path: '/home' })
+      })
+      .catch(function (error) {
+        let errorCode = error.code
+        let errorMessage = error.message
+        // [START_EXCLUDE]
+        if (errorCode == 'auth/wrong-password') {
+          alert('Wrong password.')
+          this.$router.push({ path: '/' })
+        } else {
+          alert(errorMessage)
+          this.$router.push({ path: '/' })
+        }
+      })
     },
  }
 }

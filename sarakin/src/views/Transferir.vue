@@ -57,6 +57,7 @@ export default {
     methods: {
 
       transfer () {
+        
           const database = firebase.firestore()
           const id = firebase.auth().currentUser.uid
 
@@ -87,7 +88,7 @@ export default {
                       }
                     })
 
-                    if(this.flag) {
+                    if(this.flag && this.email != firebase.auth().currentUser.email) {
                       database.collection('users')
                       .where('email', '==', this.email).get()
                       .then(snapshot => {
